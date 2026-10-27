@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: tele-shop-bot-24-7
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: PYTHONIOENCODING
+        value: utf-8
+      - key: PORT
+        value: 8080
