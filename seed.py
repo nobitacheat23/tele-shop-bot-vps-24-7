@@ -39,7 +39,7 @@ CATEGORIES = [
     ("📧", "OUTLOOK", 1, "6271729477202486177"),
     ("Ⓜ️", "GMAIL", 1, "6269304581616837699"),
     ("1️⃣", "GOOGLE ONE", 1, "6271418268167184773"),
-    ("✖️", "GROK", 0, "6271327893465342624"),
+    ("✖️", "GROK", 1, "6271327893465342624"),
     ("🎦", "KLING", 1, "6271448599226229313"),
     ("💳", "MB Bank", 1, "6271672530231108413"),
     ("🍏", "APPLE", 1, "6271802478761616142"),
@@ -64,23 +64,33 @@ CATEGORIES = [
     ("🖼", "OPENART", 0, "6271430513118946157"),
     ("🟨", "XBOX", 1, "6271637118225752955"),
     ("✈️", "Tele", 1, "6271288401241055003"),
-    ("📁", "Khác", 0, "6271715071882176082"),
+    ("📁", "Khác", 1, "6271715071882176082"),
 ]
 
 # (category, name, price, warranty, infinite_stock, demo_stock_count)
 PRODUCTS = [
+    # Sản phẩm đồng bộ trực tiếp từ @ShopKhangVeo3Bot
+    ("CAPCUT", "CAPCUT PRO TEAM 7 NGÀY BHF", 18000, "Bảo hành full 7 ngày", 0, 40),
+    ("CAPCUT", "CAPCUT PRO CÁ NHÂN 30 Ngày BHF", 60000, "Bảo hành full 30 ngày", 0, 28),
+    ("CAPCUT", "CAPCUT TEAM 6 THÁNG BHF", 350000, "Bảo hành full 6 tháng", 0, 4),
+    ("CAPCUT", "CAPCUT PRO 1 THÁNG BHF", 38000, "Bảo hành full 1 tháng", 0, 20),
+    ("CHAT GPT", "ChatGPT Plus Apple Pay Gmail 30D - BHF", 250000, "Bảo hành full 30 ngày", 0, 67),
+    ("CHAT GPT", "CHAT GPT PLUS 1 THÁNG BẢO HÀNH FULL", 200000, "Bảo hành full 1 tháng", 0, 33),
+    ("CHAT GPT", "CHAT GPT PLUS 1 THÁNG BẢO HÀNH 5 NGÀY", 155000, "Bảo hành 5 ngày", 0, 9),
+    ("CHAT GPT", "CHAT GPT PLUS 1 THÁNG BẢO HÀNH 12H", 95000, "Bảo hành 12h", 0, 0),
+    ("CHAT GPT", "SLOT CHATGPT BUSINESS DÙNG CHUNG 1 THÁNG BHF", 119000, "Bảo hành full 1 tháng", 1, 0),
+    ("GOOGLE ONE", "Link Gemini Pro 18 Tháng BH 24H", 50000, "Bảo hành 24H", 0, 76),
+    ("GROK", "Grok Plus 30 ngày KBH", 140000, "Không bảo hành", 0, 14),
+    ("KLING", "Kling Standard 1200 credit 1TH BH 1 ngày", 165000, "Bảo hành 1 ngày", 0, 4),
+    ("HIGGFIELD", "Higgfield GenJutsu 720p 1th BH 1h", 50000, "Bảo hành 1 giờ", 0, 53),
+    ("GMAIL", "Gmail (New) -Login All", 30000, "Bảo hành login lần đầu", 0, 125),
+    ("GMAIL", "GMAIL US CỔ DATE 201X-202X 2FA", 45000, "Bảo hành login 24h", 0, 54),
+    ("Khác", "Key GPM Login Chính hãng 1 tháng BHF", 150000, "Bảo hành full 1 tháng", 0, 1),
     ("MUSE AI", "API MUSE TẠO 333 VIDEO 10s 1 THÁNG BHF", 150000, "Bảo hành full 1 tháng", 0, 4),
     ("MUSE AI", "MUSE AI 31 TỈ TOKEN BẢO HÀNH 24H", 85000, "Bảo hành 24h", 0, 17),
-    ("CHAT GPT", "CHAT GPT PLUS 1 THÁNG BẢO HÀNH 12H", 95000, "Bảo hành 12h", 0, 0),
-    ("CHAT GPT", "CHAT GPT PLUS 1 THÁNG BẢO HÀNH 5 NGÀY", 155000, "Bảo hành 5 ngày", 0, 9),
-    ("CHAT GPT", "CHAT GPT PLUS 1 THÁNG BẢO HÀNH FULL", 200000, "Bảo hành full 1 tháng", 0, 33),
-    ("CHAT GPT", "SLOT CHATGPT BUSINESS DÙNG CHUNG 1 THÁNG BHF", 119000, "Bảo hành full 1 tháng", 1, 0),
-    ("CAPCUT", "CAPCUT PRO TEAM 7 NGÀY BHF", 10000, "Bảo hành full 7 ngày", 0, 0),
-    ("CAPCUT", "CAPCUT PRO 1 THÁNG BHF", 38000, "Bảo hành full 1 tháng", 0, 20),
     ("GOOGLE ULTRA", "SLOT VEO3 ULTRA X5 RANDOM CREDITS 1 THÁNG", 360000, "Bảo hành 1 tháng", 0, 0),
     ("GOOGLE ULTRA", "SLOT VEO3 ULTRA X20 RANDOM CREDITS 1 THÁNG", 450000, "Bảo hành 1 tháng", 1, 0),
-    ("GMAIL", "GMAIL US CỔ DATE 201X-202X 2FA", 45000, "Bảo hành login 24h", 0, 56),
-    ("Tele", "THUÊ BOT TELEGRAM BINANCE ĐỂ ĐẤU API", 100000, "Hỗ trợ trong thời gian thuê", 0, 38),
+    ("Tele", "THUÊ BOT TELEGRAM BINANCE ĐỂ ĐẤU API", 100000, "Hỗ trợ trong thời gian thuê", 0, 37),
 ]
 
 
