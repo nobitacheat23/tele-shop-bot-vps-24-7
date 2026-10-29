@@ -1,4 +1,6 @@
 """Admin Panel (/admin)."""
+from __future__ import annotations
+
 import asyncio
 import logging
 import re
@@ -10,7 +12,7 @@ from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError, Teleg
 from aiogram.filters import Command, Filter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import BufferedInputFile, CallbackQuery, Message
+from aiogram.types import BufferedInputFile, CallbackQuery, InlineKeyboardMarkup, Message
 
 import bank_auto
 import db
