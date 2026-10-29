@@ -88,12 +88,22 @@ async def render_home():
     cfg = await bank_auto.get_bank_config()
     bank_label = f"{cfg['bank_id']} - {cfg['account']}" if cfg["account"] else "Chưa cài"
     auto_label = "✅ BẬT" if (cfg["auto_approve"] or cfg["sepay_token"] or cfg["casso_key"] or cfg["web2m_url"]) else "⬜ TẮT"
-    text = (f"🛠 <b>ADMIN DASHBOARD</b>\n\n👥 Tổng user: <b>{n_users}</b>\n"
-            f"🧾 Đơn hôm nay: <b>{n_ord}</b>\n💰 Doanh thu hôm nay: <b>{S.fmt_money(rev)}</b>\n"
+
+    is_maint = await S.is_maintenance()
+    maint_badge = "🔴 ĐANG BẬT BẢO TRÌ" if is_maint else "🟢 HOẠT ĐỘNG BÌNH THƯỜNG"
+
+    text = (f"🛠 <b>ADMIN DASHBOARD</b>\n\n"
+            f"⚡ Trạng thái: <b>{maint_badge}</b>\n"
+            f"👥 Tổng user: <b>{n_users}</b> | 🧾 Đơn hôm nay: <b>{n_ord}</b>\n"
+            f"💰 Doanh thu hôm nay: <b>{S.fmt_money(rev)}</b>\n"
             f"🛡 Bảo hành chờ xử lý: <b>{n_tk}</b> | ⏳ Nạp chờ duyệt: <b>{n_dep}</b>\n"
             f"🏦 Bank: <code>{esc(bank_label)}</code> | ⚡ Auto duyệt: <b>{auto_label}</b>\n"
             f"💵 Min nạp hiện tại: <b>{S.fmt_money(cfg['min_deposit'])}</b>")
+
+    maint_btn = btn("🟢 Tắt Bảo Trì (Mở Shop)", "a:maint_toggle:0", style="success") if is_maint else btn("🛠 Bật Chế Độ Bảo Trì Shop", "a:maint_menu", style="danger")
+
     return text, kb([
+        [maint_btn],
         [btn("🏦 Ngân hàng & Auto Bank", "a:bank"), btn("💵 Đổi Min Nạp", "a:set_min_deposit", style="primary")],
         [btn("👥 Người dùng", "a:users"), btn("📂 Sản phẩm & Kho", "a:cats")],
         [btn("🧾 Tra mã đơn", "a:order"), btn(f"🛡 Bảo hành ({n_tk})", "a:tickets")],
@@ -121,6 +131,100 @@ async def cb_home(cb: CallbackQuery, state: FSMContext):
 async def cmd_cancel(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("❌ Đã hủy.", reply_markup=kb([[btn("🛠 Admin", "a:home")]]))
+
+
+# ======================================================================
+# CHẾ ĐỘ BẢO TRÌ SHOP (MAINTENANCE MODE)
+# ======================================================================
+async def render_maintenance_menu() -> tuple[str, InlineKeyboardMarkup]:
+    is_maint = await S.is_maintenance()
+    reason = await S.get_maintenance_reason()
+    status_str = "🔴 <b>ĐANG BẬT BẢO TRÌ</b> (Khách không thể mua hàng/nạp tiền, chỉ Admin mới dùng được)" if is_maint else "🟢 <b>HOẠT ĐỘNG BÌNH THƯỜNG</b> (Khách mua sắm tự do)"
+
+    text = (
+        "🛠 <b>QUẢN LÝ CHẾ ĐỘ BẢO TRÌ SHOP</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        f"• Trạng thái hiện tại: {status_str}\n\n"
+        f"📝 <b>Thông báo hiển thị cho khách:</b>\n"
+        f"<i>\"{esc(reason)}\"</i>\n\n"
+        "👉 <i>Khi BẬT bảo trì, mọi khách hàng gửi tin nhắn hoặc bấm nút sẽ nhận thông báo trên kèm nút CSKH. Admin vẫn truy cập và thao tác bình thường.</i>"
+    )
+
+    toggle_btn = btn("🟢 TẮT BẢO TRÌ (MỞ SHOP)", "a:maint_toggle:0", style="success") if is_maint else btn("🔴 BẬT BẢO TRÌ NGAY", "a:maint_toggle:1", style="danger")
+
+    rows = [
+        [toggle_btn],
+        [btn("✏️ Đổi thông báo bảo trì", "a:maint_set_reason", style="primary")],
+        [btn("« Về Admin Dashboard", "a:home", style=None)],
+    ]
+    return text, kb(rows)
+
+
+@router.callback_query(F.data == "a:maint_menu")
+async def cb_maint_menu(cb: CallbackQuery, state: FSMContext):
+    await state.clear()
+    text, markup = await render_maintenance_menu()
+    await ui.edit(cb, text, markup)
+    await cb.answer()
+
+
+@router.callback_query(F.data.startswith("a:maint_toggle:"))
+async def cb_maint_toggle(cb: CallbackQuery, state: FSMContext):
+    await state.clear()
+    val = cb.data.split(":")[2]
+    new_state = (val == "1")
+    await S.set_maintenance(new_state)
+    msg = "🔴 ĐÃ BẬT CHẾ ĐỘ BẢO TRÌ! Khách hàng sẽ bị chặn." if new_state else "🟢 ĐÃ TẮT BẢO TRÌ! Shop đã mở cửa lại bình thường."
+    await cb.answer(msg, show_alert=True)
+    text, markup = await render_maintenance_menu()
+    await ui.edit(cb, text, markup)
+
+
+@router.callback_query(F.data == "a:maint_set_reason")
+async def cb_maint_set_reason(cb: CallbackQuery, state: FSMContext):
+    current = await S.get_maintenance_reason()
+    await ask(
+        cb.message,
+        state,
+        "maint_reason",
+        f"✏️ <b>NHẬP THÔNG BÁO BẢO TRÌ MỚI:</b>\n\n"
+        f"<i>Nội dung hiện tại:</i>\n<code>{esc(current)}</code>\n\n"
+        f"👉 Gửi nội dung mới bạn muốn hiển thị cho khách khi hệ thống bảo trì:"
+    )
+    await cb.answer()
+
+
+@router.message(Command("baotri"))
+@router.message(Command("maintenance"))
+async def cmd_maintenance(message: Message, state: FSMContext):
+    await state.clear()
+    args = (message.text or "").split()[1:]
+    if args:
+        sub = args[0].lower()
+        if sub in ("on", "1", "bat", "bật"):
+            await S.set_maintenance(True)
+            return await message.answer(
+                "🔴 <b>ĐÃ BẬT CHẾ ĐỘ BẢO TRÌ SHOP!</b>\n\n"
+                "• Toàn bộ khách hàng sẽ thấy thông báo bảo trì.\n"
+                "• Admin vẫn có thể kiểm tra và sử dụng bot bình thường.",
+                reply_markup=kb([[btn("🛠 Bảng quản lý bảo trì", "a:maint_menu"), btn("🏠 Admin Home", "a:home")]])
+            )
+        elif sub in ("off", "0", "tat", "tắt", "mo", "mở"):
+            await S.set_maintenance(False)
+            return await message.answer(
+                "🟢 <b>ĐÃ TẮT BẢO TRÌ! SHOP ĐÃ HOẠT ĐỘNG TRỞ LẠI!</b>\n\n"
+                "• Khách hàng có thể tiếp tục mua sắm và nạp tiền bình thường.",
+                reply_markup=kb([[btn("🏠 Admin Home", "a:home")]])
+            )
+        elif sub == "reason" and len(args) > 1:
+            new_reason = " ".join(args[1:])
+            await S.set_maintenance_reason(new_reason)
+            return await message.answer(
+                f"✅ <b>ĐÃ CẬP NHẬT THÔNG BÁO BẢO TRÌ:</b>\n\n<i>\"{esc(new_reason)}\"</i>",
+                reply_markup=kb([[btn("🛠 Bảng quản lý bảo trì", "a:maint_menu")]])
+            )
+    text, markup = await render_maintenance_menu()
+    await message.answer(text, reply_markup=markup)
 
 
 # ======================================================================
@@ -1362,6 +1466,16 @@ async def on_input(message: Message, state: FSMContext, bot: Bot):
         await S.set_setting(f"icon_{data['key']}", icon)
         await state.clear()
         return await ui.answer(message, *await render_icons())
+
+    if action == "maint_reason":
+        reason = txt.strip()
+        if not reason:
+            return await message.answer("❌ Nội dung không được để trống!")
+        await S.set_maintenance_reason(reason)
+        await state.clear()
+        await message.answer(f"✅ <b>Đã cập nhật thông báo bảo trì:</b>\n\n<i>\"{esc(reason)}\"</i>")
+        text, markup = await render_maintenance_menu()
+        return await ui.answer(message, text, markup)
 
     if action == "bulk_icons":
         await state.clear()

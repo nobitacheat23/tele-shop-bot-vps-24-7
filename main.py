@@ -32,6 +32,7 @@ async def setup_commands(bot: Bot):
     await bot.set_my_commands(user_cmds, scope=BotCommandScopeDefault())
     admin_cmds = user_cmds + [
         BotCommand(command="admin", description="🛠 Bảng điều khiển Admin"),
+        BotCommand(command="baotri", description="🛠 Bật / Tắt chế độ bảo trì shop"),
         BotCommand(command="setmindeposit", description="💵 Cài đặt số tiền nạp tối thiểu"),
         BotCommand(command="icons", description="🎨 Gán icon Premium hàng loạt"),
     ]

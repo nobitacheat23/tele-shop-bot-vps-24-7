@@ -75,6 +75,30 @@ async def set_setting(key: str, value):
     _settings_cache[key] = value
 
 
+# ---------------- maintenance mode ----------------
+DEFAULT_MAINTENANCE_REASON = (
+    "Shop đang tạm thời bảo trì để nâng cấp hệ thống, tối ưu máy chủ và bổ sung kho hàng mới. "
+    "Toàn bộ tài khoản và số dư của quý khách được bảo toàn tuyệt đối 100%. Vui lòng quay lại sau ít phút!"
+)
+
+
+async def is_maintenance() -> bool:
+    v = await get_setting("maintenance_mode", "0")
+    return str(v).strip().lower() in ("1", "true", "yes", "on")
+
+
+async def set_maintenance(enabled: bool):
+    await set_setting("maintenance_mode", "1" if enabled else "0")
+
+
+async def get_maintenance_reason() -> str:
+    return await get_setting("maintenance_reason", DEFAULT_MAINTENANCE_REASON)
+
+
+async def set_maintenance_reason(reason: str):
+    await set_setting("maintenance_reason", (reason or "").strip() or DEFAULT_MAINTENANCE_REASON)
+
+
 # ---------------- users ----------------
 async def upsert_user(tg_user) -> dict:
     uid = tg_user.id

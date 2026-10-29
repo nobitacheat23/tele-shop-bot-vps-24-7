@@ -189,6 +189,9 @@ async def api_products(req: web.Request) -> web.Response:
 
 async def api_buy(req: web.Request) -> web.Response:
     u = await _auth_api_user(req)
+    if await S.is_maintenance():
+        reason = await S.get_maintenance_reason()
+        return web.json_response({"success": False, "error": "maintenance", "message": reason}, status=503)
     try:
         data = await req.json()
     except Exception:
