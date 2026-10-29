@@ -584,8 +584,10 @@ async def cb_dep_bank(cb: CallbackQuery, lang: str):
     if not cfg["account"]:
         return await cb.answer(t(lang, "bank_off"), show_alert=True)
     min_dep = cfg["min_deposit"]
-    amounts = [20000, 50000, 100000, 200000, 500000, 1000000]
-    amounts = [a for a in amounts if a >= min_dep]
+    preset = [10000, 20000, 50000, 100000, 200000, 500000, 1000000]
+    amounts = [a for a in preset if a >= min_dep]
+    if min_dep not in amounts and min_dep < 2000000:
+        amounts = sorted(list(set([min_dep] + amounts)))
     rows = [[btn(S.fmt_money(a), f"bq:{a}") for a in amounts[i:i + 3]] for i in range(0, len(amounts), 3)]
     rows.append([btn(t(lang, "bank_custom"), "bq:c")])
     rows.append([btn(t(lang, "back"), "u:wallet", style=None)])
@@ -615,7 +617,9 @@ async def cb_bank_amount(cb: CallbackQuery, state: FSMContext, user: dict, lang:
     v = cb.data[3:]
     if v == "c":
         await state.set_state(UserSG.bank_amount)
-        await cb.message.answer(t(lang, "ask_amount", min=S.fmt_money(cfg["min_deposit"])))
+        await cb.message.answer(
+            f"✏️ <b>Gửi số tiền bạn muốn nạp</b> (tối thiểu <b>{S.fmt_money(cfg['min_deposit'])}</b>, ví dụ: <code>{cfg['min_deposit']}</code> hoặc <code>50k</code>):"
+        )
     else:
         await send_bank_qr(cb.message, user, lang, int(v))
     await cb.answer()
@@ -673,16 +677,7 @@ async def cb_bank_done(cb: CallbackQuery, bot: Bot, user: dict, lang: str):
 
 
 def parse_amount(s: str) -> int | None:
-    s = s.lower().replace(".", "").replace(",", "").replace(" ", "").replace("đ", "").replace("vnd", "")
-    mult = 1
-    if s.endswith("k"):
-        mult, s = 1000, s[:-1]
-    elif s.endswith(("tr", "m")):
-        mult, s = 1_000_000, s.rstrip("trm")
-    try:
-        return int(float(s) * mult)
-    except ValueError:
-        return None
+    return S.parse_amount(s)
 
 
 @router.message(UserSG.bank_amount, F.text)
@@ -690,7 +685,10 @@ async def st_bank_amount(message: Message, state: FSMContext, user: dict, lang: 
     cfg = await bank_auto.get_bank_config()
     amt = parse_amount(message.text)
     if not amt or amt < cfg["min_deposit"]:
-        return await message.answer(t(lang, "bad_amount"))
+        return await message.answer(
+            f"❌ Số tiền nạp không hợp lệ! Mức nạp tối thiểu là <b>{S.fmt_money(cfg['min_deposit'])}</b>.\n\n"
+            f"<i>Vui lòng gửi lại số tiền hợp lệ:</i>"
+        )
     await state.clear()
     await send_bank_qr(message, user, lang, amt)
 

@@ -30,6 +30,23 @@ def fmt_k(v) -> str:
     return f"{v}đ"
 
 
+def parse_amount(s: str) -> int | None:
+    if not s:
+        return None
+    s = str(s).lower().replace(" ", "").replace("đ", "").replace("vnd", "")
+    mult = 1
+    if s.endswith("k"):
+        mult, s = 1000, s[:-1].replace(",", ".")
+    elif s.endswith(("tr", "m")):
+        mult, s = 1_000_000, s.rstrip("trm").replace(",", ".")
+    else:
+        s = s.replace(".", "").replace(",", "")
+    try:
+        return int(float(s) * mult)
+    except (ValueError, TypeError):
+        return None
+
+
 def gen_order_id() -> str:
     alphabet = string.ascii_uppercase + string.digits
     return "ORD" + "".join(secrets.choice(alphabet) for _ in range(8))

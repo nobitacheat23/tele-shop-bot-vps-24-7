@@ -91,9 +91,10 @@ async def render_home():
     text = (f"🛠 <b>ADMIN DASHBOARD</b>\n\n👥 Tổng user: <b>{n_users}</b>\n"
             f"🧾 Đơn hôm nay: <b>{n_ord}</b>\n💰 Doanh thu hôm nay: <b>{S.fmt_money(rev)}</b>\n"
             f"🛡 Bảo hành chờ xử lý: <b>{n_tk}</b> | ⏳ Nạp chờ duyệt: <b>{n_dep}</b>\n"
-            f"🏦 Bank: <code>{esc(bank_label)}</code> | ⚡ Auto duyệt: <b>{auto_label}</b>")
+            f"🏦 Bank: <code>{esc(bank_label)}</code> | ⚡ Auto duyệt: <b>{auto_label}</b>\n"
+            f"💵 Min nạp hiện tại: <b>{S.fmt_money(cfg['min_deposit'])}</b>")
     return text, kb([
-        [btn("🏦 Ngân hàng & Auto Bank", "a:bank")],
+        [btn("🏦 Ngân hàng & Auto Bank", "a:bank"), btn("💵 Đổi Min Nạp", "a:set_min_deposit", style="primary")],
         [btn("👥 Người dùng", "a:users"), btn("📂 Sản phẩm & Kho", "a:cats")],
         [btn("🧾 Tra mã đơn", "a:order"), btn(f"🛡 Bảo hành ({n_tk})", "a:tickets")],
         [btn("📊 Thống kê", "st:1"), btn("📢 Broadcast", "a:bc")],
@@ -652,7 +653,7 @@ async def render_bank():
         [btn(f"⏳ Đơn QR & Nạp Ví chờ duyệt ({total_pending})", "a:pdep", style="success")],
         [btn("🖼 Xem thử ảnh QR MoMo gửi cho khách", "ab:testqr")],
         [btn("🏛 Chọn Ngân hàng / MoMo", "ab:pick_bank"), btn("💳 Đổi Số TK/SĐT", "ab:acc"), btn("👤 Đổi Chủ TK", "ab:name")],
-        [btn("📝 Đổi Cú pháp nạp", "ab:prefix"), btn("💵 Đổi Min nạp", "ab:min")],
+        [btn("📝 Đổi Cú pháp nạp", "ab:prefix"), btn("💵 Đổi Min nạp", "a:set_min_deposit", style="primary")],
         [btn("⚡ Cài nhanh (NH|STK|TÊN)", "ab:quick"), btn("🧪 Giả lập duyệt đơn", "ab:sim")],
         [BACK()],
     ]
@@ -718,6 +719,81 @@ BANK_PROMPTS = {
                               "Gửi <code>0</code> để xóa."),
     "ab:sim": ("bank_sim", "🧪 <b>GIẢ LẬP NỔ TIỀN BANK / ĐƠN QR</b>\n\nGửi theo định dạng:\n• Nạp Ví: <code>UID|SỐ_TIỀN</code> (vd: <code>8754685711|50000</code>)\n• Đơn QR trực tiếp: <code>MÃ_DH|SỐ_TIỀN</code> (vd: <code>DH123456|150000</code>)"),
 }
+
+
+def render_min_deposit_settings(current_min: int) -> tuple[str, InlineKeyboardMarkup]:
+    text = (
+        "💵 <b>CÀI ĐẶT MỨC NẠP TỐI THIỂU (MIN NẠP)</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        f"• Mức nạp tối thiểu hiện tại: <b>{S.fmt_money(current_min)}</b>\n"
+        "• Khách hàng sẽ không thể tạo lệnh nạp ví hoặc quét QR với số tiền nhỏ hơn mức này.\n\n"
+        "👉 <i>Bấm chọn nhanh mức nạp đề xuất hoặc bấm <b>Tự nhập số khác</b>:</i>"
+    )
+    rows = [
+        [btn("10.000đ", "adm:setmin:10000"), btn("20.000đ", "adm:setmin:20000"), btn("50.000đ", "adm:setmin:50000")],
+        [btn("100.000đ", "adm:setmin:100000"), btn("200.000đ", "adm:setmin:200000"), btn("500.000đ", "adm:setmin:500000")],
+        [btn("✏️ Tự nhập số tiền khác", "adm:custom_min_dep", style="primary")],
+        [btn("« Quay lại Admin", "a:home", style=None)],
+    ]
+    return text, kb(rows)
+
+
+@router.callback_query(F.data == "a:set_min_deposit")
+@router.callback_query(F.data == "ab:min")
+async def cb_min_deposit_menu(cb: CallbackQuery, state: FSMContext):
+    await state.clear()
+    cfg = await bank_auto.get_bank_config()
+    text, markup = render_min_deposit_settings(cfg["min_deposit"])
+    await ui.edit(cb, text, markup)
+    await cb.answer()
+
+
+@router.callback_query(F.data.startswith("adm:setmin:"))
+async def cb_apply_preset_min(cb: CallbackQuery, state: FSMContext):
+    await state.clear()
+    amt_str = cb.data.split(":")[2]
+    amt = int(amt_str)
+    await S.set_setting("min_deposit", str(amt))
+    text, markup = render_min_deposit_settings(amt)
+    await ui.edit(cb, text, markup)
+    await cb.answer(f"✅ Đã đổi mức nạp tối thiểu thành {S.fmt_money(amt)}!", show_alert=True)
+
+
+@router.callback_query(F.data == "adm:custom_min_dep")
+async def cb_custom_min_dep(cb: CallbackQuery, state: FSMContext):
+    await ask(
+        cb.message,
+        state,
+        "min_deposit",
+        "💵 <b>NHẬP MỨC NẠP TỐI THIỂU MỚI:</b>\n\n"
+        "Gửi số tiền bạn muốn cài làm mức nạp tối thiểu (vd: <code>10000</code>, <code>20k</code>, <code>50k</code>, <code>100k</code>):\n"
+        "<i>(Tối thiểu từ 1.000đ trở lên)</i>"
+    )
+    await cb.answer()
+
+
+@router.message(Command("setmindeposit"))
+@router.message(Command("minnap"))
+async def cmd_set_min_deposit(message: Message, state: FSMContext):
+    await state.clear()
+    args = (message.text or "").split()[1:]
+    cfg = await bank_auto.get_bank_config()
+    if args:
+        amt = S.parse_amount(args[0])
+        if not amt or amt < 1000:
+            return await message.answer(
+                "❌ Số tiền tối thiểu không hợp lệ (tối thiểu 1.000đ).\n"
+                "Ví dụ: <code>/setmindeposit 20000</code> hoặc <code>/setmindeposit 50k</code>"
+            )
+        await S.set_setting("min_deposit", str(amt))
+        return await message.answer(
+            f"✅ <b>ĐÃ CẬP NHẬT MIN NẠP THÀNH CÔNG!</b>\n\n"
+            f"• Mức nạp tối thiểu mới: <b>{S.fmt_money(amt)}</b>\n"
+            f"• Toàn bộ giao diện người dùng và cổng nạp ngân hàng đã cập nhật mức này.",
+            reply_markup=kb([[btn("💵 Quản lý Min nạp", "a:set_min_deposit"), btn("🛠 Về Admin Dashboard", "a:home")]])
+        )
+    text, markup = render_min_deposit_settings(cfg["min_deposit"])
+    await message.answer(text, reply_markup=markup)
 
 
 @router.callback_query(F.data.in_(BANK_PROMPTS.keys()))
@@ -1295,10 +1371,18 @@ async def on_input(message: Message, state: FSMContext, bot: Bot):
     if action in ("bank_id", "bank_account", "bank_account_name", "deposit_prefix", "min_deposit",
                   "sepay_token", "casso_key", "web2m_url"):
         if action == "min_deposit":
-            amt = parse_amount(txt)
+            amt = S.parse_amount(txt)
             if not amt or amt < 1000:
-                return await message.answer("❌ Số tiền tối thiểu không hợp lệ (tối thiểu 1.000đ).")
-            val = str(amt)
+                return await message.answer("❌ Số tiền tối thiểu không hợp lệ (tối thiểu 1.000đ, vd: <code>20000</code> hoặc <code>50k</code>).")
+            await S.set_setting("min_deposit", str(amt))
+            await state.clear()
+            text, markup = render_min_deposit_settings(amt)
+            await message.answer(
+                f"✅ <b>ĐÃ CẬP NHẬT MIN NẠP THÀNH CÔNG!</b>\n\n"
+                f"• Mức nạp tối thiểu mới: <b>{S.fmt_money(amt)}</b>\n"
+                f"• Hệ thống đã áp dụng cho toàn bộ người dùng."
+            )
+            return await ui.answer(message, text, markup)
         elif action in ("sepay_token", "casso_key", "web2m_url") and txt in ("0", "-", "xoa", "xóa"):
             val = ""
         elif action == "bank_id":
