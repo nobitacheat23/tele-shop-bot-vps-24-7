@@ -9,7 +9,7 @@ on:
 
 concurrency:
   group: tele-shop-bot-24-7-singleton
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -38,13 +38,6 @@ jobs:
 
       - name: Run Bot 24/7 with Auto-DB-Backup (5h30m cycle)
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          ADMIN_IDS: ${{ secrets.ADMIN_IDS }}
-          SHOP_NAME: ${{ secrets.SHOP_NAME }}
-          SUPPORT_USERNAME: ${{ secrets.SUPPORT_USERNAME }}
-          BANK_ID: ${{ secrets.BANK_ID }}
-          BANK_ACCOUNT: ${{ secrets.BANK_ACCOUNT }}
-          BANK_ACCOUNT_NAME: ${{ secrets.BANK_ACCOUNT_NAME }}
           PYTHONIOENCODING: utf-8
         run: |
           git config user.name "Bot Auto-Save"

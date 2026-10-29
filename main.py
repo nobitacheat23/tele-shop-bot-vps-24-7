@@ -93,3 +93,6 @@ if __name__ == "__main__":
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
         pass
+    except Exception as e:
+        log.exception("FATAL ERROR IN MAIN: %s", e)
+        raise

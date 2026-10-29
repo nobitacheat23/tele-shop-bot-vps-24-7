@@ -28,15 +28,12 @@ def main():
     while True:
         try:
             log("Starting main.py...")
-            with open(LOG_FILE, "a", encoding="utf-8") as lf:
-                proc = subprocess.Popen(
-                    [sys.executable, "main.py"],
-                    cwd=BASE_DIR,
-                    env=env,
-                    stdout=lf,
-                    stderr=lf,
-                )
-                code = proc.wait()
+            proc = subprocess.Popen(
+                [sys.executable, "-u", "main.py"],
+                cwd=BASE_DIR,
+                env=env,
+            )
+            code = proc.wait()
             log(f"main.py exited with code {code}. Tự động khởi động lại sau 3 giây...")
         except KeyboardInterrupt:
             log("Watchdog stopped by user.")
