@@ -29,7 +29,7 @@ TEXTS = {
             '<tg-emoji emoji-id="5471978009449731768">👉</tg-emoji> Công cụ AI & Đồ họa: ChatGPT Plus, Canva Pro, CapCut, Adobe...\n'
             '<tg-emoji emoji-id="5471978009449731768">👉</tg-emoji> Proxy, API, Bot và vô vàn tài nguyên MMO chất lượng cao.\n'
             '<tg-emoji emoji-id="5431449001532594346">👉</tg-emoji> Hệ thống nạp tiền và giao hàng tự động 100% cực nhanh!\n\n'
-            '<tg-emoji emoji-id="5467406098367521267">👑</tg-emoji> <b>Admin/Support hỗ trợ 24/7:</b> @useralex199\n\n'
+            '<tg-emoji emoji-id="5467406098367521267">👑</tg-emoji> <b>Admin/Support hỗ trợ 24/7:</b> @roxie_usa1998\n\n'
             'Chúc anh em mua sắm vui vẻ và "bão đơn" cùng <b>TÀI NGUYÊN MMO</b>! <tg-emoji emoji-id="5436040291507247633">🎉</tg-emoji>'
         ),
         "shop_title": "🛒 <b>Chọn danh mục hoặc sản phẩm bên dưới:</b>",

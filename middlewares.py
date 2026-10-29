@@ -23,7 +23,7 @@ class UserMiddleware(BaseMiddleware):
         if isinstance(event, Message) and event.chat.type != "private":
             return None  # shop chỉ hoạt động trong chat riêng
         user = await S.upsert_user(tg_user)
-        if user["is_banned"] and not is_admin(tg_user.id):
+        if user["is_banned"] and not is_admin(tg_user.id, tg_user.username):
             msg = t(user["language"], "banned")
             if isinstance(event, CallbackQuery):
                 await event.answer(msg, show_alert=True)

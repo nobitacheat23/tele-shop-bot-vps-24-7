@@ -27,7 +27,7 @@ router = Router(name="admin")
 
 class IsAdmin(Filter):
     async def __call__(self, event) -> bool:
-        return bool(event.from_user) and is_admin(event.from_user.id)
+        return bool(event.from_user) and is_admin(event.from_user.id, event.from_user.username)
 
 
 router.message.filter(IsAdmin())

